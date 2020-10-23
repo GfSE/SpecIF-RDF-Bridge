@@ -173,7 +173,7 @@ transformSpecifToRDF = (specifFile) => {
         meta:dataType "${propertyClass.dataType}" ;
         dcterms:modified "${propertyClass.changedAt}" .`
     }) */}
-    //ergebnis += transformPropertyClasses(ProjectURI, ej.propertyClasses)
+    ergebnis += transformPropertyClasses(ProjectURI, ej.propertyClasses)
     
 
     //Transform ResourceClasses to RDF
@@ -225,7 +225,7 @@ transformSpecifToRDF = (specifFile) => {
     
 
     // Transform statements to RDF
-    //ergebnis += transformStatements(ProjectURI, ej.statements);
+    ergebnis += transformStatements(ProjectURI, ej.statements);
 
     // Transform hierarchies to RDF
     {/* ej.hierarchies.forEach( hierarchy => {
@@ -237,7 +237,7 @@ transformSpecifToRDF = (specifFile) => {
         dcterms:modified "${hierarchy.changedAt}"; .
         `
     }) */}
-    //ergebnis += transformHierarchies(ProjectURI, ej.hierarchies);
+    ergebnis += transformHierarchies(ProjectURI, ej.hierarchies);
 
 
     // Transform Files
@@ -339,7 +339,7 @@ transformProjectBaseInformations = (project) => {
         return baseProjectRdfString;
 }
 
-transformDatatypes = (projectURI, datatypes) => {
+transformDatatypes = (projectURI = '', datatypes) => {
     if (!isArrayWithContent(datatypes)){
         return '';
     }
@@ -348,37 +348,34 @@ transformDatatypes = (projectURI, datatypes) => {
 }
 
 
-transformPropertyClasses = (projectURI, propertyClasses) => {
+transformPropertyClasses = (projectURI = '', propertyClasses) => {
     if (!isArrayWithContent(propertyClasses)){
         return '';
     }
-    let propertyClassesRdfString;
+    let propertyClassesRdfString = '';
     
     propertyClasses.forEach(propertyClass => {        
-        let propertyClassMappingUri = projectURI+"/"+propertyClass.id;
-        properties[propertyClass.id] = propertyClass.title;
-
-        propertyClassesRdfString += `<${projectURI}> meta:containsPropertyClassMapping <${propertyClassMappingUri}> .
         
-        <${propertyClassMappingUri}> a meta:PropertyClassMapping ;
-                meta:id                 "${propertyClass.id}" ;
-                meta:title              "${propertyClass.title}" ; # Literal
-                rdfs:comment            "${propertyClass.description}" ; # Literal
-                meta:vocabularyElement  ${propertyClass.title} ; # rely on prefix definitions (quick and dirty), only in Turtle syntax
-                #meta:vocabularyElement <http://purl.org/dc/terms/title> ; # resolved to URI
-                meta:dataType           "${propertyClass.dataType}" ;
-                dcterms:modified        "${propertyClass.changedAt}" .
+        propertyClassesRdfString += 
+        `this: meta:containsPropertyClassMapping :${propertyClass.id} .
+        :${propertyClass.id} a meta:PropertyClassMapping ;
+            meta:id "${propertyClass.id}" ;
+            meta:title "${propertyClass.title}" ; 
+            meta:vocabularyElement ${propertyClass.title} ;
+            meta:dataType "${propertyClass.dataType}" ;
+            meta:revision "${propertyClass.revision}" ;
+            dcterms:modified "${propertyClass.changedAt}" .
                 
                 `
     })
     return propertyClassesRdfString;
 }
 
-transformResourceClasses = (projectURI, resourceClasses) => {
+transformResourceClasses = (projectURI = '', resourceClasses) => {
     if (!isArrayWithContent(resourceClasses)){
         return '';
     }
-    
+
     /* this: meta:containsResourceClassMapping :RC-Req .
   :RC-Req a meta:ResourceClassMapping ;
     meta:id "RC-Req" ;
@@ -454,7 +451,7 @@ transformResourceClasses = (projectURI, resourceClasses) => {
     return resourceClassesRdfString;
 }
 
-transformStatementClasses = (projectURI, statementClasses) => {
+transformStatementClasses = (projectURI = '', statementClasses) => {
     if (!isArrayWithContent(statementClasses)){
         return '';
     }
@@ -526,7 +523,7 @@ transformStatementClasses = (projectURI, statementClasses) => {
     
 }
 
-transformResources = (projectURI, resources) => {
+transformResources = (projectURI = '', resources) => {
     if (!isArrayWithContent(resources)){
         return '';
     }
@@ -552,35 +549,94 @@ transformResources = (projectURI, resources) => {
     return resourcesRdfString;
 }
 
-transformStatements = (projectURI, statements) => {
+transformStatements = (projectURI = '', statements) => {
     if (!isArrayWithContent(statements)){
         return '';
     }
 
-    return '';
+    /* :RVis-Pln-5a4755dd0000bca801375293a62c90a8-MEl-5bd6bd890000bca8013739588a3f43d6 a meta:Statement ;
+    meta:id "RVis-Pln-5a4755dd0000bca801375293a62c90a8-MEl-5bd6bd890000bca8013739588a3f43d6" ;
+    rdf:subject :Pln-5a4755dd0000bca801375293a62c90a8 ;
+    rdf:predicate :SC-Visibility ;
+    rdf:object :MEl-5bd6bd890000bca8013739588a3f43d6 ;
+    meta:modified "2017-06-19T20:13:33+02:00" ;
+    meta:changedBy "od" ;
+    meta:revision "93" ;
+  . */
+
+  /* {
+		"id": "RVis-Pln-5a4755dd0000bca801375293a62c90a8-MEl-5bd6bd890000bca8013739588a3f43d6",
+		"class": "SC-Visibility",
+		"revision": "93",
+		"changedAt": "2017-06-19T20:13:33+02:00",
+		"changedBy": "od",
+		"subject": "Pln-5a4755dd0000bca801375293a62c90a8",
+		"object": "MEl-5bd6bd890000bca8013739588a3f43d6"
+		} */
+
+
+    let statementRdfString = ``
+    
+    statements.forEach( statement => {
+        statementRdfString+=
+        `:${statement.id} a meta:Statement ;
+        meta:id "${statement.id}" ;
+        rdf:subject :${statement.subject} ;
+        rdf:predicate :${statement.class} ;
+        rdf:object :${statement.object} ;
+        meta:modified "${statement.changedAt}" ;
+        meta:changedBy "${statement.changedBy}" ;
+        meta:revision "${statement.revision}" ;.\n\n`
+
+    })
+
+
+    return statementRdfString;
 }
 
-transformHierarchies = (projectURI, hierarchies) => {
+transformHierarchies = (projectURI = '', hierarchies) => {
     if (!isArrayWithContent(hierarchies)){
         return '';
     }
 
-    let hierarchyRdfString
+    let hierarchyRdfString = ''
 
-    hierarchies.forEach( hierarchy => {
-        
-        let hierarchyUri = projectURI+"/"+hierarchy.id;
-        hierarchyRdfString += `<${hierarchyUri}> a SpecIF:RC-Hierarchy ;
-                    meta:id             "${hierarchy.id}" ;
-                    meta:resource       <${projectURI+"/"+hierarchy.resource}> ;
-                    dcterms:modified    "${hierarchy.changedAt}"; .
-                    `
+    hierarchies.forEach( node => {
+        hierarchyRdfString+=transformNodes(node)
     })
 
     return hierarchyRdfString
 }
 
-transformFiles = (projectURI, files) => {
+transformNodes = (hierarchyNode) => {
+    
+    let hierarchyNodeRdfString = ''
+    hierarchyNodeRdfString += `:${hierarchyNode.id} a SpecIF:RC-Hierarchy ;
+        eta:id "${hierarchyNode.id}" ;
+        eta:resource "${hierarchyNode.id}" ;
+        eta:revision "${hierarchyNode.id}" ;
+        cterms:modified "${hierarchyNode.id}"`
+    if(isArrayWithContent(hierarchyNode.nodes)){
+        NodeRdfString = `\n\tmeta:nodes`
+        hierarchyNode.nodes.forEach( node => {
+            NodeRdfString += `\n\t\t${node.id},` 
+        })
+        hierarchyNodeRdfString+=NodeRdfString.replace(/,([^,]*)$/, ';')
+        
+        hierarchyNodeRdfString += ` .\n\n`
+        
+        hierarchyNode.nodes.forEach( node => {
+            transformNodes(node); 
+        })
+        return hierarchyNodeRdfString
+    } else {
+        hierarchyNodeRdfString += ` .\n\n`
+        return hierarchyNodeRdfString
+    }
+    
+}
+
+transformFiles = (projectURI = '', files) => {
     if (!isArrayWithContent(files)){
         return '';
     }
