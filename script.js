@@ -67,7 +67,8 @@ let exampleText = `{
 transformSpecifToRDF = (specifFile) => {
     let ej= JSON.parse(specifFile)
 
-    let ergebnis = `@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+    let ergebnis = '';
+    /* `@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
     @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
     @prefix foaf: <http://xmlns.com/foaf/0.1/> .
     @prefix owl: <http://www.w3.org/2002/07/owl#> .
@@ -86,7 +87,8 @@ transformSpecifToRDF = (specifFile) => {
     @prefix HIS: <http://specif.de/v1.0/schema/HIS#> .
     @prefix BPMN: <http://specif.de/v1.0/schema/bpmn#> .
     
-    `
+    ` */
+
     let base = 'http://example.com/'
     let projectID = ej.id
     let ProjectURI = base+projectID
@@ -95,17 +97,64 @@ transformSpecifToRDF = (specifFile) => {
     // properties get extracted from PropertyClasses and are used
     // in Resources. 
     properties = [];
+
+{
+/* 
+    ---Required Values---
+    $schema
+    id 
+    title 
+    resourceClasses
+    statementClasses
+    resources
+    statements
+    hierarchies
+
+    ---Optional Values---
+    description
+    isExtension -> bool
+    generator -> string
+    generatorVersion -> string
+    rights -> {
+        *title -> string
+        *type -> string
+        *url -> string
+    }
+    createdAt -> dateTime
+    createdBy -> {
+        familyName -> string
+        givenName -> string
+        org -> {
+            *organizationName-> string
+        }
+        *email -> {
+            type -> string
+            *value -> string
+        }
+    }
+    language -> string
+    dataTypes -> [
+        
+    ]
+    propertyClasses
+    files */
+}
+
+
     
     // Setting ProjectSctructure id -> title
-    ergebnis += `<${ProjectURI}> a meta:Document ;
+    /* ergebnis += `<${ProjectURI}> a meta:Document ;
             rdfs:label "${ej.title}" .`
     //      dcterms:modified ej.createdAt
-    //      dcterms:schema ej.$schema
-    
+    //      dcterms:schema ej.$schema */
+    ergebnis += defineTurtleVocabulary("https://example.com", ej.id)
 
+
+    ergebnis += transformProjectBaseInformations(ej);
+    
     // Transform Datatypes to RDF
     //ej.dataTypes.forEach( hierarchy => {  })
-    ergebnis += transformDatatypes(ProjectURI, ej.dataTypes)
+    //ergebnis += transformDatatypes(ProjectURI, ej.dataTypes)
 
     //Transform PropertyClasses to RDF
     {/* ej.propertyClasses.forEach(propertyClass => {        
@@ -124,7 +173,7 @@ transformSpecifToRDF = (specifFile) => {
         meta:dataType "${propertyClass.dataType}" ;
         dcterms:modified "${propertyClass.changedAt}" .`
     }) */}
-    ergebnis += transformPropertyClasses(ProjectURI, ej.propertyClasses)
+    //ergebnis += transformPropertyClasses(ProjectURI, ej.propertyClasses)
     
 
     //Transform ResourceClasses to RDF
@@ -172,11 +221,11 @@ transformSpecifToRDF = (specifFile) => {
         ergebnis += `.
         `
     }) */}
-    ergebnis += transformResources(ProjectURI, ej.resources);
+    //ergebnis += transformResources(ProjectURI, ej.resources);
     
 
     // Transform statements to RDF
-    ergebnis += transformStatements(ProjectURI, ej.statements);
+    //ergebnis += transformStatements(ProjectURI, ej.statements);
 
     // Transform hierarchies to RDF
     {/* ej.hierarchies.forEach( hierarchy => {
@@ -188,7 +237,7 @@ transformSpecifToRDF = (specifFile) => {
         dcterms:modified "${hierarchy.changedAt}"; .
         `
     }) */}
-    ergebnis += transformHierarchies(ProjectURI, ej.hierarchies);
+    //ergebnis += transformHierarchies(ProjectURI, ej.hierarchies);
 
 
     // Transform Files
@@ -198,14 +247,104 @@ transformSpecifToRDF = (specifFile) => {
     return ergebnis;
 }
 
-isArrayWithContent = (array) => {
-    return (Array.isArray(array) && array.length > 0)
+defineTurtleVocabulary = (baseUri, projectID) => {
+    let RdfString = `
+    @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+    @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+    @prefix foaf: <http://xmlns.com/foaf/0.1/> .
+    @prefix owl: <http://www.w3.org/2002/07/owl#> .
+    #@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+    @prefix xs: <http://www.w3.org/2001/XMLSchema#> .
+    @prefix dcterms: <http://purl.org/dc/terms/> .
+    @prefix vann: <http://purl.org/vocab/vann/> .
+    @prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+    @prefix meta: <http://specif.de/v1.0/schema/meta#> .
+    @prefix SpecIF: <http://specif.de/v1.0/schema/core#> .
+    @prefix FMC: <http://specif.de/v1.0/schema/fmc#> .
+    @prefix IREB: <http://specif.de/v1.0/schema/ireb#> .
+    @prefix SysML: <http://specif.de/v1.0/schema/sysml#> .
+    @prefix oslc: <http://specif.de/v1.0/schema/oslc#> .
+    @prefix oslc_rm: <http://specif.de/v1.0/schema/oslc_rm#> .
+    @prefix HIS: <http://specif.de/v1.0/schema/HIS#> .
+    @prefix BPMN: <http://specif.de/v1.0/schema/bpmn#> .
+
+    @prefix : <${baseUri}/${projectID}/> .
+    @prefix this: <${baseUri}/${projectID}/> .
+    `
+    return RdfString;
+}
+
+transformProjectBaseInformations = (project) => {
+    let baseProjectRdfString;
+
+    /* "id": "ACP-59c8a7730000bca80137509a49b1218b",
+	"title": "Dimmer - Semantically Integrated Specification (2020-08-19)",
+	"description": "This specification method integrates and represents:\n- processes, system composition and requirements (dynamic, static and detail views)\n- mechanic, electric and software components with their interfaces.\n\nIt is important to understand, that all plans (diagrams) are views of a common system engineering model, sometimes called 'system repository'. Thus, consistency is always maintained.\n\nThe model elements are connected with relations, most of which are defined by positioning graph elements. For example, if a system component is drawn within another, a relationship 'contains' is created in the logic representation of the engineering model. Other relations, such as a system component 'complies-with' a requirement are created manually.  \n\nAlso, the documents are generated from the system engineering model. The ordering is in most projects (it can be rearranged, however, if appropriate):\n- All plans\n- A glossary with descriptions of all model elements appearing on one or more plans\n- A hierarchically ordered list of requirements\n- A list of open issues.\nPlease note that plans list related model elements and model elements list related requirements .. and vice versa. Active hyper-links are used, so that it is easy to jump between related model elements.\n\nFurther information is given in Appendix 'Method'.",
+    "$schema": "https://specif.de/v1.0/schema.json",
+	"generator": "Interactive-Spec",
+	"generatorVersion": "0.95.3",
+	"rights": {
+		"title": "Creative Commons 4.0 CC BY-SA",
+		"type": "dcterms:rights",
+		"url": "https://creativecommons.org/licenses/by-sa/4.0/"
+	},
+	"createdAt": "2019-05-04T19:08:31.960Z",
+	"createdBy": {
+		"familyName": "von Dungern",
+		"givenName": "Oskar",
+		"email": {
+			"type": "text/html",
+			"value": "oskar.dungern@adesso.de"
+		},
+		"org": {
+			"organizationName": "adesso"
+		}
+    }, */
+    
+    /* this: a meta:Document ;
+            meta:id "ACP-59c8a7730000bca80137509a49b1218b" ;
+            rdfs:label "Dimmer - Semantically Integrated Specification (2020-08-19)" ;
+            rdfs:comment "This specification method integrates and represents:\n- processes, system composition and requirements (dynamic, static and detail views)\n- mechanic, electric and software components with their interfaces.\n\nIt is important to understand, that all plans (diagrams) are views of a common system engineering model, sometimes called 'system repository'. Thus, consistency is always maintained.\n\nThe model elements are connected with relations, most of which are defined by positioning graph elements. For example, if a 1system component is drawn within another, a relationship 'contains' is created in the logic representation of the engineering model. Other relations, such as a system component 'complies-with' a requirement are created manually.  \n\nAlso, the documents are generated from the system engineering model. The ordering is in most projects (it can be rearranged, however, if appropriate):\n- All plans\n- A glossary with descriptions of all model elements appearing on one or more plans\n- A hierarchically ordered list of requirements\n- A list of open issues.\nPlease note that plans list related model elements and model elements list related requirements .. and vice versa. Active hyper-links are used, so that it is easy to jump between related model elements.\n\nFurther information is given in Appendix 'Method'." ;
+            meta:schema <https://specif.de/v1.0/schema.json> ;
+            meta:generator "Interactive-Spec" ;
+            meta:generatorVersion "0.95.3" ;
+            meta:rights-title "Creative Commons 4.0 CC BY-SA" ;
+            meta:rights-type "dcterms:rights" ;
+            meta:rights-url "https://creativecommons.org/licenses/by-sa/4.0/" ;
+            dcterms:modified "2019-05-04T19:08:31.960Z" ;
+            meta:createdBy-familyName "von Dungern" ;
+            meta:createdBy-givenName "Oskar" ;
+            meta:createdBy-email "oskar.dungern@adesso.de" ;
+            meta:createdBy-org-organizationName "adesso" . */
+    
+    baseProjectRdfString = `
+    this: a meta:Document ;
+        meta:id "${project.id}" ;
+        rdfs:label "${project.title}" ;
+        rdfs:comment "${project.description}" ;
+        meta:schema <${project.$schema}> ;
+        meta:generator "${project.generator}" ;
+        meta:generatorVersion "${project.generatorVersion}" ;
+        meta:rights-title "${project.rights.title}" ;
+        meta:rights-type "${project.rights.type}" ;
+        meta:rights-url "${project.rights.url}" ;
+        dcterms:modified "${project.createdAt}" ;
+        meta:createdBy-familyName "${project.createdBy.familyName}" ;
+        meta:createdBy-givenName "${project.createdBy.givenName}" ;
+        meta:createdBy-email "${project.createdBy.email.value}" ;
+        meta:createdBy-org-organizationName "${project.createdBy.org.organizationName}" .
+        
+        `
+        return baseProjectRdfString;
 }
 
 transformDatatypes = (projectURI, datatypes) => {
     if (!isArrayWithContent(datatypes)){
         return '';
     }
+
+    return '';
 }
 
 
@@ -239,10 +378,61 @@ transformResourceClasses = (projectURI, resourceClasses) => {
     if (!isArrayWithContent(resourceClasses)){
         return '';
     }
+    
+    /* this: meta:containsResourceClassMapping :RC-Req .
+  :RC-Req a meta:ResourceClassMapping ;
+    meta:id "RC-Req" ;
+    meta:title "IREB:Requirement";
+    meta:vocabularyElement IREB:Requirement ;
+    meta:description "A 'Requirement' is a singular documented physical and functional need that a particular design, product or process must be able to perform." ;
+    meta:icon "&#8623;" ;
+    meta:instantiation "user" ;
+    dcterms:modified "2016-05-26T08:59:00+02:00" ;
+    meta:propertyClasses 
+      :PC-Name ,
+      :PC-Description ,
+      :PC-SupplierStatus ,
+      :PC-SupplierComment ,
+      :PC-OemStatus ,
+      :PC-OemComment ;
+    meta:revision "1" ;
+  . */
 
-    let resourceClassesRdfString
 
-    resourceClasses.forEach(resourceClass => {
+ /*  {
+    "id": "RC-Req",
+    "title": "IREB:Requirement",
+    "description": "A 'Requirement' is a singular documented physical and functional need that a particular design, product or process must be able to perform.",
+    "icon": "&#8623;",
+    "instantiation": ["user"],
+    "propertyClasses": ["PC-VisibleId", "PC-Name", "PC-Text", "PC-Status", "PC-Priority", "AT-Req-perspective", "AT-Req-discipline", "PC-SupplierStatus", "PC-SupplierComment", "PC-OemStatus", "PC-OemComment"],
+    "revision": "1",
+    "changedAt": "2016-05-26T08:59:00+02:00"
+} */
+
+    let resourceClassesRdfString=``;
+
+    resourceClasses.forEach( resourceClass => {
+        resourceClassesRdfString+=`:${resourceClass.id} a meta:ResourceClassMapping ;
+        meta:id "${resourceClass.id}" ;
+        meta:title "${resourceClass.id}";
+        meta:vocabularyElement ${resourceClass.id} ;
+        meta:description "${resourceClass.id}" ;
+        meta:icon "${resourceClass.id}" ;
+        meta:instantiation "${resourceClass.id}" ;
+        dcterms:modified "${resourceClass.id}" ;
+        meta:revision "${resourceClass.id}" ;`
+
+        let propertyClassRdfString = `\n\tmeta:propertyClasses `
+        resourceClass.propertyClasses.forEach( propertyClass => {
+            propertyClassRdfString += `\n\t\t:${propertyClass},`
+        })
+        resourceClassesRdfString+=propertyClassRdfString.replace(/,([^,]*)$/, ';')
+        resourceClassesRdfString+=`\n\n`
+
+    })
+
+    /* resourceClasses.forEach(resourceClass => {
         let resourceClassMappingUri = projectURI+"/"+resourceClass.id;
         resourceClassesRdfString += `<${projectURI}> meta:containsResourceClassMapping <${resourceClassMappingUri}> .
     
@@ -258,11 +448,8 @@ transformResourceClasses = (projectURI, resourceClasses) => {
         resourceClass.propertyClasses.forEach( proertyClass => {
             resourceClassesRdfString += `meta:propertyClasses <http://example.com/P-Requirement-with-Properties/${proertyClass}> ;
             `
-        })
-        resourceClassesRdfString += `.
-
-        `
-    })
+        }) 
+    })*/
 
     return resourceClassesRdfString;
 }
@@ -271,6 +458,71 @@ transformStatementClasses = (projectURI, statementClasses) => {
     if (!isArrayWithContent(statementClasses)){
         return '';
     }
+
+    /* :SC-Visibility a meta:StatementClassMapping ;
+    meta:id "SC-Visibility" ;
+    rdfs:label  "SpecIF:shows" ;
+    meta:vocabularyElement SpecIF:SC-shows ;
+    rdfs:comment "Relation: Plan shows Model-Element" ;
+    meta:instantiation "auto" ;
+    meta:revision: "1" ;
+    dcterms:modified "2016-05-26T08:59:00+02:00" ;
+    meta:subjectClasses :RC-Pln ;
+    meta:objectClasses 
+      :RC-Act ,
+      :RC-Sta ,
+      :RC-Evt ;
+  . */
+
+  /* {
+    "id": "SC-Visibility",
+    "title": "SpecIF:shows",
+    "description": "Relation: Plan shows Model-Element",
+    "instantiation": ["auto"],
+    "revision": "1",
+    "changedAt": "2016-05-26T08:59:00+02:00",
+    "subjectClasses": ["RC-Pln"],
+    "objectClasses": ["RC-Act", "RC-Sta", "RC-Evt"]
+    } */
+    
+    let statementClassesRDFString = ``;
+
+    statementClasses.forEach( statementClass => {
+        statementClassesRDFString +=
+        `:${statementClass.id} a meta:StatementClassMapping ;
+        meta:id "${statementClass.id}" ;
+        rdfs:label  "${statementClass.title}" ;
+        meta:vocabularyElement ${statementClass.id} ;
+        rdfs:comment "${statementClass.description}" ;
+        meta:revision: "${statementClass.revision}" ;
+        dcterms:modified "${statementClass.changedAt}" ;` 
+
+        let instantiationRDFString =`\n\tmeta:instantiation`
+        statementClass.instantiation.forEach( instantiation => {
+            instantiationRDFString += `\n\t\t"${instantiation}",`
+        })
+        statementClassesRDFString+=instantiationRDFString.replace(/,([^,]*)$/, ';')
+
+
+        let subjectClassesRDFString =`\n\tmeta:subjectClasses`
+        statementClass.subjectClasses.forEach( subjectClass => {
+            subjectClassesRDFString += `\n\t\t:${subjectClass},`
+        })
+        statementClassesRDFString+=subjectClassesRDFString.replace(/,([^,]*)$/, ';')
+
+
+        let objectClassesRDFString =`\n\tmeta:objectClasses `
+        statementClass.objectClasses.forEach( objectClass => {
+            objectClassesRDFString += `\n\t\t:${objectClass},`
+        })
+        statementClassesRDFString+=objectClassesRDFString.replace(/,([^,]*)$/, ';')
+        statementClassesRDFString+=`\n\n`
+        
+    })
+    
+
+
+    return statementClassesRDFString;
     
 }
 
@@ -304,6 +556,8 @@ transformStatements = (projectURI, statements) => {
     if (!isArrayWithContent(statements)){
         return '';
     }
+
+    return '';
 }
 
 transformHierarchies = (projectURI, hierarchies) => {
@@ -322,14 +576,49 @@ transformHierarchies = (projectURI, hierarchies) => {
                     dcterms:modified    "${hierarchy.changedAt}"; .
                     `
     })
+
+    return hierarchyRdfString
 }
 
 transformFiles = (projectURI, files) => {
     if (!isArrayWithContent(files)){
         return '';
     }
+
+    /* input 
+    "files": [{
+		"id": "F-67845657",
+		"title": "files_and_images/27420ffc0000c3a8013ab527ca1b71f5.svg",
+		"type": "image/svg+xml",
+		"changedAt": "2018-11-24T17:49:22.000Z"
+	}, ...    
+    */
+
+    /* output RDF
+    :F-67845657 a meta:File ;
+	    meta:id "F-67845657" ;
+	    rdfs:label "files_and_images/27420ffc0000c3a8013ab527ca1b71f5.svg" ;
+	    meta:type "image/svg+xml" ;
+	    dcterms:modified "2018-11-24T17:49:22.000Z" .    
+    */
+    let filesRdfString = ``;
+    files.forEach( file => {
+filesRdfString += 
+`:${file.id} a meta:File ;
+    meta:id "${file.id}" ;
+    rdfs:label "${file.title}" ;
+    meta:type "${file.type}" ;
+    dcterms:modified "${file.changedAt}" .
+
+`})
+    return filesRdfString;
 }
 
+/* 
+##########################################################################
+########################## Tools #########################################
+##########################################################################
+*/
 
 getInputValue = () => {
     element = document.getElementById("input");
@@ -343,6 +632,6 @@ transform = () => {
     element.innerHTML=rdf
 }
 
-
-
-
+isArrayWithContent = (array) => {
+    return (Array.isArray(array) && array.length > 0)
+}
