@@ -154,7 +154,7 @@ transformSpecifToRDF = (specifFile) => {
     
     // Transform Datatypes to RDF
     //ej.dataTypes.forEach( hierarchy => {  })
-    //ergebnis += transformDatatypes(ProjectURI, ej.dataTypes)
+    ergebnis += transformDatatypes(ProjectURI, ej.dataTypes)
 
     //Transform PropertyClasses to RDF
     {/* ej.propertyClasses.forEach(propertyClass => {        
@@ -370,26 +370,28 @@ transformDatatypes = (projectURI = '', dataTypes) => {
     let dataTypesRdfString = '';
 
     dataTypes.forEach( dataType => {
-        dataTypesRdfString += `this: meta:containsDataTypeMapping :${dataType.id} .`
-    dataTypesRdfString += `:${dataType.id} a meta:DataTypeMapping , owl:Class ;`
-        dataTypesRdfString += `meta:id "${dataType.id}" ;`
-        dataTypesRdfString += `rdfs:label "${dataType.title}" ;`
-        dataTypesRdfString += `meta:type "${dataType.type}" ; `
-        dataTypesRdfString += `meta:vocabularyElement ${dataType.type} ;`
-        dataTypesRdfString += `meta:revision "${dataType.revision}" ;`
-        dataTypesRdfString += `meta:maxLength "${dataType.maxLength}" ;`
-        dataTypesRdfString += `meta:fractionDigits "${dataType.fractionDigits}" ;`
-        dataTypesRdfString += `meta:minInclusive "${dataType.minInclusive}" ;`
-        dataTypesRdfString += `meta:maxInclusive "${dataType.maxInclusive}" ;`
-        dataTypesRdfString += `dcterms:modified "${dataType.changedAt}" .`
+        dataTypesRdfString += `
+
+    this: meta:containsDataTypeMapping :${dataType.id} .
+    :${dataType.id} a meta:DataTypeMapping , owl:Class ;
+        meta:id "${dataType.id}" ;
+        rdfs:label "${dataType.title}" ;
+        meta:type "${dataType.type}" ; 
+        meta:vocabularyElement ${dataType.type} ;
+        meta:revision "${dataType.revision}" ;
+        meta:maxLength "${dataType.maxLength}" ;
+        meta:fractionDigits "${dataType.fractionDigits}" ;
+        meta:minInclusive "${dataType.minInclusive}" ;
+        meta:maxInclusive "${dataType.maxInclusive}" ;
+        dcterms:modified "${dataType.changedAt}" .`
 
         if(isArrayWithContent(dataType.values)){
             dataType.values.forEach( enumValue => {
                 dataTypesRdfString += `
                 
-                :${enumValue.id} a ${dataType.title} ;
-                    meta:id "${dataType.id}" ;
-                    rdfs:label "${dataType.value}" .`
+    :${enumValue.id} a ${dataType.title} ;
+        meta:id "${dataType.id}" ;
+        rdfs:label "${dataType.value}" .`
             })
         }
     })
@@ -407,16 +409,17 @@ transformPropertyClasses = (projectURI = '', propertyClasses) => {
     propertyClasses.forEach(propertyClass => {        
         
         propertyClassesRdfString += 
-        `this: meta:containsPropertyClassMapping :${propertyClass.id} .
-        :${propertyClass.id} a meta:PropertyClassMapping ;
-            meta:id "${propertyClass.id}" ;
-            meta:title "${propertyClass.title}" ; 
-            meta:vocabularyElement ${propertyClass.title} ;
-            meta:dataType "${propertyClass.dataType}" ;
-            meta:revision "${propertyClass.revision}" ;
-            dcterms:modified "${propertyClass.changedAt}" .
+        `
+    this: meta:containsPropertyClassMapping :${propertyClass.id} .
+    :${propertyClass.id} a meta:PropertyClassMapping ;
+        meta:id "${propertyClass.id}" ;
+        meta:title "${propertyClass.title}" ; 
+        meta:vocabularyElement ${propertyClass.title} ;
+        meta:dataType "${propertyClass.dataType}" ;
+        meta:revision "${propertyClass.revision}" ;
+        dcterms:modified "${propertyClass.changedAt}" .
                 
-                `
+`
     })
     return propertyClassesRdfString;
 }
@@ -460,7 +463,8 @@ transformResourceClasses = (projectURI = '', resourceClasses) => {
     let resourceClassesRdfString=``;
 
     resourceClasses.forEach( resourceClass => {
-        resourceClassesRdfString+=`:${resourceClass.id} a meta:ResourceClassMapping ;
+        resourceClassesRdfString+=`
+    :${resourceClass.id} a meta:ResourceClassMapping ;
         meta:id "${resourceClass.id}" ;
         meta:title "${resourceClass.id}";
         meta:vocabularyElement ${resourceClass.id} ;
@@ -536,7 +540,8 @@ transformStatementClasses = (projectURI = '', statementClasses) => {
 
     statementClasses.forEach( statementClass => {
         statementClassesRDFString +=
-        `:${statementClass.id} a meta:StatementClassMapping ;
+        `
+    :${statementClass.id} a meta:StatementClassMapping ;
         meta:id "${statementClass.id}" ;
         rdfs:label  "${statementClass.title}" ;
         meta:vocabularyElement ${statementClass.id} ;
@@ -583,17 +588,18 @@ transformResources = (projectURI = '', resources) => {
     resources.forEach( resource => {
         let resourceUri = projectURI+"/"+resource.id;
         
-        resourcesRdfString += `<${resourceUri}> a IREB:Requirement;
-                rdfs:label              "${resource.title}" ;
-                dcterms:modifed         "${resource.changedAt}" ;
-                `
+        resourcesRdfString += `
+    <${resourceUri}> a IREB:Requirement;
+        rdfs:label              "${resource.title}" ;
+        dcterms:modifed         "${resource.changedAt}" ;
+`
     
         resource.properties.forEach( property => {
             resourcesRdfString +=  `${properties[property.class]} "${property.value}" ;
-            `;
+`;
         })
         resourcesRdfString += `.
-        `
+`
     })
 
     return resourcesRdfString;
@@ -629,7 +635,8 @@ transformStatements = (projectURI = '', statements) => {
     
     statements.forEach( statement => {
         statementRdfString+=
-        `:${statement.id} a meta:Statement ;
+        `
+    :${statement.id} a meta:Statement ;
         meta:id "${statement.id}" ;
         rdf:subject :${statement.subject} ;
         rdf:predicate :${statement.class} ;
@@ -661,7 +668,8 @@ transformHierarchies = (projectURI = '', hierarchies) => {
 transformNodes = (hierarchyNode) => {
     
     let hierarchyNodeRdfString = ''
-    hierarchyNodeRdfString += `:${hierarchyNode.id} a SpecIF:RC-Hierarchy ;
+    hierarchyNodeRdfString += `
+    :${hierarchyNode.id} a SpecIF:RC-Hierarchy ;
         eta:id "${hierarchyNode.id}" ;
         eta:resource "${hierarchyNode.id}" ;
         eta:revision "${hierarchyNode.id}" ;
@@ -710,11 +718,11 @@ transformFiles = (projectURI = '', files) => {
     let filesRdfString = ``;
     files.forEach( file => {
 filesRdfString += 
-`:${file.id} a meta:File ;
-    meta:id "${file.id}" ;
-    rdfs:label "${file.title}" ;
-    meta:type "${file.type}" ;
-    dcterms:modified "${file.changedAt}" .
+`   :${file.id} a meta:File ;
+        meta:id "${file.id}" ;
+        rdfs:label "${file.title}" ;
+        meta:type "${file.type}" ;
+        dcterms:modified "${file.changedAt}" .
 
 `})
     return filesRdfString;
