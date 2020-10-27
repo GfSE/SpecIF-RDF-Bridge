@@ -339,12 +339,62 @@ transformProjectBaseInformations = (project) => {
         return baseProjectRdfString;
 }
 
-transformDatatypes = (projectURI = '', datatypes) => {
-    if (!isArrayWithContent(datatypes)){
+transformDatatypes = (projectURI = '', dataTypes) => {
+    if (!isArrayWithContent(dataTypes)){
         return '';
     }
+    
+    /* {
+			"id": "DT-Byte",
+			"title": "Byte",
+			"type": "xs:integer",
+			"minInclusive": 0,
+			"maxInclusive": 255,
+			"revision": "1",
+            "changedAt": "2016-05-26T08:59:00+02:00",
+            
+        } 
+        
+        this: meta:containsDataTypeMapping :DT-Byte .
+        :DT-Byte a meta:DataTypeMapping ;
+            meta:id "DT-Byte" ;
+            rdfs:label "Byte" ;
+            meta:type "xs:integer" ; 
+            meta:vocabularyElement xs:integer ;
+            meta:revision "1" ;
+            meta:minInclusive "0" ;
+            meta:maxInclusive "255" ;
+            dcterms:modified "2016-05-26T08:59:00+02:00" .
+        */
 
-    return '';
+    let dataTypesRdfString = '';
+
+    dataTypes.forEach( dataType => {
+        dataTypesRdfString += `this: meta:containsDataTypeMapping :${dataType.id} .`
+    dataTypesRdfString += `:${dataType.id} a meta:DataTypeMapping , owl:Class ;`
+        dataTypesRdfString += `meta:id "${dataType.id}" ;`
+        dataTypesRdfString += `rdfs:label "${dataType.title}" ;`
+        dataTypesRdfString += `meta:type "${dataType.type}" ; `
+        dataTypesRdfString += `meta:vocabularyElement ${dataType.type} ;`
+        dataTypesRdfString += `meta:revision "${dataType.revision}" ;`
+        dataTypesRdfString += `meta:maxLength "${dataType.maxLength}" ;`
+        dataTypesRdfString += `meta:fractionDigits "${dataType.fractionDigits}" ;`
+        dataTypesRdfString += `meta:minInclusive "${dataType.minInclusive}" ;`
+        dataTypesRdfString += `meta:maxInclusive "${dataType.maxInclusive}" ;`
+        dataTypesRdfString += `dcterms:modified "${dataType.changedAt}" .`
+
+        if(isArrayWithContent(dataType.values)){
+            dataType.values.forEach( enumValue => {
+                dataTypesRdfString += `
+                
+                :${enumValue.id} a ${dataType.title} ;
+                    meta:id "${dataType.id}" ;
+                    rdfs:label "${dataType.value}" .`
+            })
+        }
+    })
+
+    return dataTypesRdfString;
 }
 
 
