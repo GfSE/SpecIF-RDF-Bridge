@@ -274,10 +274,10 @@ transformNodes = (hierarchyNode) => {
     let hierarchyNodeRdfString = emptyLine();
 
     hierarchyNodeRdfString += id ? tier0RdfEntry(`:${id} a SpecIF:RC-Hierarchy ;`) : '';
-    hierarchyNodeRdfString += resource ? tier1RdfEntry(`eta:id "${id}" ;`) : '';
-    hierarchyNodeRdfString += revision ? tier1RdfEntry(`eta:resource "${resource}" ;`) : '';
-    hierarchyNodeRdfString += changedAt ? tier1RdfEntry(`eta:revision "${revision}" ;`) : '';
-    hierarchyNodeRdfString += nodes ? tier1RdfEntry(`cterms:modified "${changedAt}" ;`) : '';
+    hierarchyNodeRdfString += id ? tier1RdfEntry(`eta:id "${id}" ;`) : '';
+    hierarchyNodeRdfString += resource ? tier1RdfEntry(`eta:resource "${resource}" ;`) : '';
+    hierarchyNodeRdfString += revision ? tier1RdfEntry(`eta:revision "${revision}" ;`) : '';
+    hierarchyNodeRdfString += changedAt ? tier1RdfEntry(`cterms:modified "${changedAt}" ;`) : '';
     
     if(isArrayWithContent(nodes)){
         NodeRdfString = tier1RdfEntry(`meta:nodes`);
