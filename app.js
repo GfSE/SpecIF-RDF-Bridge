@@ -1,7 +1,7 @@
 transformSpecifToRDF = (SpecIfObject) => {
     let ej= JSON.parse(SpecIfObject)
     let {id,dataTypes,propertyClasses,resourceClasses,statementClasses,resources,statements,hierarchies,files} = ej;
-    let base = 'http://example.com/'
+    let base = 'http://example.com'
     let projectID = id
     
     resultRdfString = defineTurtleVocabulary(base, projectID)
@@ -382,5 +382,5 @@ emptyLine = () => {
 }
 
 escapeSpecialCharaters = (string) => {
-    return string.replace(/\\([\s\S])|(')/g, "\\$1$2").replace(/\n/g, "\\n")
+    return string.replace("\\","\\\\").replace(/\\([\s\S])|(')/g, "\\$1$2").replace(/\n/g, "\\n")
 }
