@@ -1,4 +1,4 @@
-testTransofrmSpecifToTTL = (SpecIfObject) => {
+testTransformSpecifToTTL = (SpecIfObject) => {
    return transformSpecifToTTL("https://www.example.com",SpecIfObject)
 }
 
@@ -356,7 +356,7 @@ getInputValue = () => {
 
 transform = () => {
     input = getInputValue();
-    rdf = testTransofrmSpecifToTTL(input)
+    rdf = testTransformSpecifToTTL(input)
     element = document.getElementById('output');
     element.innerHTML=rdf
 }
