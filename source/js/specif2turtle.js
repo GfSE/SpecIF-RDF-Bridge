@@ -346,22 +346,6 @@ extractRdfFromSpecifObjectArray = (predicate, objectArray) => {
 }
 
 /* 
-############################ UI ###########################################
- */
-
-getInputValue = () => {
-    element = document.getElementById('input');
-    return element.value;
-}
-
-transform = () => {
-    input = getInputValue();
-    rdf = testTransformSpecifToTTL(input)
-    element = document.getElementById('output');
-    element.innerHTML=rdf
-}
-
-/* 
 ########################## String #########################################
  */
 
