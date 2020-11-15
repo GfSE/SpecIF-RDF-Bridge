@@ -1,4 +1,4 @@
-testTransofrmSpecifToTTL = (SpecIfObject) => {
+testTransformSpecifToTTL = (SpecIfObject) => {
    return transformSpecifToTTL("https://www.example.com",SpecIfObject)
 }
 
@@ -343,22 +343,6 @@ extractRdfFromSpecifObjectArray = (predicate, objectArray) => {
         TtlString=TtlString.replace(/,([^,]*)$/, ';');
     }
     return TtlString
-}
-
-/* 
-############################ UI ###########################################
- */
-
-getInputValue = () => {
-    element = document.getElementById('input');
-    return element.value;
-}
-
-transform = () => {
-    input = getInputValue();
-    rdf = testTransofrmSpecifToTTL(input)
-    element = document.getElementById('output');
-    element.innerHTML=rdf
 }
 
 /* 
