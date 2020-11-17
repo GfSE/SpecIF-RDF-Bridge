@@ -24,9 +24,9 @@ getInputValue = () => {
 
 transform = () => {
     input = getInputValue();
-    rdf = testTransformSpecifToTTL(input)
+    rdf = testTransformSpecifToTTL( JSON.parse(input) );
     element = document.getElementById('output');
-    element.innerHTML=rdf
+    element.innerHTML=rdf;
 }
 </script>
 <body>
